@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voice Chat</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<style>
+body {
+  margin:0;
+  background:#0f172a;
+  color:white;
+  font-family:Arial;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.card {
+  background:#111827;
+  padding:20px;
+  border-radius:16px;
+  width:320px;
+  text-align:center;
+}
+
+button {
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.find { background:#6366f1; color:white; }
+.next { background:#22c55e; color:white; }
+.mute { background:#ef4444; color:white; }
+
+.status {
+  margin:10px 0;
+  color:#cbd5e1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Voice Chat</h2>
+
+  <div id="status" class="status">Not connected</div>
+
+  <button class="find" id="find">Find partner</button>
+  <button class="next" id="next" style="display:none;">Next</button>
+  <button class="mute" id="mute" style="display:none;">Mute</button>
+</div>
+
+<script>
+const socket = io("http://localhost:3000");
+
+let localStream;
+let peer;
+let room;
+let muted = false;
+
+const status = document.getElementById("status");
+const find = document.getElementById("find");
+const next = document.getElementById("next");
+const muteBtn = document.getElementById("mute");
+
+// Get mic
+async function getAudio() {
+  localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+}
+
+find.onclick = async () => {
+  status.innerText = "Searching...";
+  await getAudio();
+  socket.emit("find");
+};
+
+next.onclick = () => {
+  socket.emit("next");
+};
+
+muteBtn.onclick = () => {
+  muted = !muted;
+  localStream.getAudioTracks()[0].enabled = !muted;
+  muteBtn.innerText = muted ? "Unmute" : "Mute";
+};
+
+function createPeer(initiator) {
+  peer = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
+
+  // send mic
+  localStream.getTracks().forEach(track => {
+    peer.addTrack(track, localStream);
+  });
+
+  peer.ontrack = (event) => {
+    const audio = new Audio();
+    audio.srcObject = event.streams[0];
+    audio.play();
+  };
+
+  peer.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit("signal", {
+        room,
+        data: { candidate: event.candidate }
+      });
+    }
+  };
+
+  if (initiator) {
+    peer.createOffer()
+      .then(o => peer.setLocalDescription(o))
+      .then(() => {
+        socket.emit("signal", {
+          room,
+          data: { offer: peer.localDescription }
+        });
+      });
+  }
+}
+
+// socket events
+socket.on("matched", async (data) => {
+  room = data.room;
+
+  status.innerText = "Connected!";
+  find.style.display = "none";
+  next.style.display = "block";
+  muteBtn.style.display = "block";
+
+  createPeer(data.initiator);
+});
+
+socket.on("signal", async (data) => {
+  if (!peer) return;
+
+  if (data.offer) {
+    await peer.setRemoteDescription(data.offer);
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+
+    socket.emit("signal", {
+      room,
+      data: { answer }
+    });
+  }
+
+  if (data.answer) {
+    await peer.setRemoteDescription(data.answer);
+  }
+
+  if (data.candidate) {
+    await peer.addIceCandidate(data.candidate);
+  }
+});
+</script>
+
+</body>
+</html>
