@@ -1,0 +1,220 @@
+<!-- chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Strangr Chat</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial;
+    }
+
+    body{
+      background:#050816;
+      color:white;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .card{
+      width:500px;
+
+      background:#0e1425;
+
+      border-radius:25px;
+
+      padding:30px;
+
+      border:1px solid #1f2740;
+    }
+
+    h1{
+      color:#6dff75;
+      text-align:center;
+      margin-bottom:25px;
+      font-size:50px;
+    }
+
+    .status{
+      text-align:center;
+      color:#6dff75;
+      margin-bottom:25px;
+    }
+
+    .chat{
+      height:300px;
+
+      background:#141b2d;
+
+      border-radius:18px;
+
+      padding:15px;
+
+      overflow-y:auto;
+
+      margin-bottom:15px;
+    }
+
+    .message{
+      background:#1e2740;
+
+      width:fit-content;
+
+      max-width:85%;
+
+      padding:10px 14px;
+
+      border-radius:12px;
+
+      margin-bottom:12px;
+    }
+
+    .me{
+      margin-left:auto;
+
+      background:#6dff75;
+
+      color:black;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+    }
+
+    input{
+      flex:1;
+
+      padding:15px;
+
+      border:none;
+
+      border-radius:14px;
+
+      background:#141b2d;
+
+      color:white;
+    }
+
+    button{
+      width:120px;
+
+      border:none;
+
+      border-radius:14px;
+
+      background:#6dff75;
+
+      font-weight:bold;
+
+      cursor:pointer;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <h1>strangr</h1>
+
+  <div class="status">
+    Connected to stranger
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="row">
+
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="Type message..."
+    />
+
+    <button id="sendBtn">
+      Send
+    </button>
+
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const socket =
+  io();
+
+const room =
+  localStorage.getItem("room");
+
+const username =
+  localStorage.getItem("username");
+
+const chat =
+  document.getElementById("chat");
+
+const sendBtn =
+  document.getElementById("sendBtn");
+
+const messageInput =
+  document.getElementById("messageInput");
+
+sendBtn.onclick = ()=>{
+
+  const text = messageInput.value;
+
+  if(!text) return;
+
+  appendMessage(text,true);
+
+  socket.emit("chat-message",{
+    room,
+    username,
+    message:text
+  });
+
+  messageInput.value = "";
+};
+
+socket.on("chat-message",(data)=>{
+
+  appendMessage(
+    data.message,
+    false
+  );
+});
+
+function appendMessage(text,me=false){
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    me
+    ? "message me"
+    : "message";
+
+  div.innerText = text;
+
+  chat.appendChild(div);
+
+  chat.scrollTop =
+    chat.scrollHeight;
+}
+
+</script>
+
+</body>
+</html>

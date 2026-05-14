@@ -1,0 +1,170 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Strangr</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#050816;
+      color:white;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:hidden;
+    }
+
+    .bg{
+      position:absolute;
+      width:100%;
+      height:100%;
+      background:
+      radial-gradient(circle at top left,#10203d 0%,transparent 30%),
+      radial-gradient(circle at bottom right,#0b3a19 0%,transparent 30%);
+      filter:blur(60px);
+      opacity:0.7;
+    }
+
+    .card{
+      position:relative;
+      z-index:2;
+
+      width:420px;
+
+      background:rgba(10,14,28,0.92);
+
+      border:1px solid #1d2338;
+
+      border-radius:28px;
+
+      padding:35px;
+
+      backdrop-filter:blur(10px);
+
+      box-shadow:
+      0 0 40px rgba(0,0,0,0.45),
+      0 0 25px rgba(0,255,120,0.06);
+    }
+
+    .logo{
+      color:#6dff75;
+      font-size:60px;
+      font-weight:900;
+      text-align:center;
+      margin-bottom:12px;
+      letter-spacing:2px;
+    }
+
+    .subtitle{
+      text-align:center;
+      color:#9097ab;
+      margin-bottom:35px;
+      line-height:1.5;
+    }
+
+    input{
+      width:100%;
+      padding:16px;
+
+      background:#141b2d;
+
+      border:none;
+      outline:none;
+
+      border-radius:15px;
+
+      color:white;
+
+      margin-bottom:18px;
+
+      font-size:15px;
+    }
+
+    button{
+      width:100%;
+
+      padding:16px;
+
+      border:none;
+
+      border-radius:15px;
+
+      background:#6dff75;
+
+      color:black;
+
+      font-size:17px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+
+      transition:0.2s;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="card">
+
+  <div class="logo">
+    strangr
+  </div>
+
+  <div class="subtitle">
+    Real conversations with real strangers
+  </div>
+
+  <input
+    type="text"
+    id="username"
+    placeholder="Your nickname"
+  />
+
+  <button id="findBtn">
+    Find Someone →
+  </button>
+
+</div>
+
+<script>
+
+  const findBtn =
+    document.getElementById("findBtn");
+
+  findBtn.onclick = ()=>{
+
+    const username =
+      document.getElementById("username").value;
+
+    localStorage.setItem(
+      "username",
+      username || "Anonymous"
+    );
+
+    window.location.href = "search.html";
+  };
+
+</script>
+
+</body>
+</html>

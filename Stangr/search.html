@@ -1,0 +1,238 @@
+<!-- search.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Searching...</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#050816;
+      color:white;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:hidden;
+    }
+
+    .bg{
+      position:absolute;
+      width:100%;
+      height:100%;
+      background:
+      radial-gradient(circle at top left,#10203d 0%,transparent 30%),
+      radial-gradient(circle at bottom right,#0b3a19 0%,transparent 30%);
+      filter:blur(60px);
+      opacity:0.7;
+    }
+
+    .box{
+      position:relative;
+      z-index:2;
+
+      width:420px;
+
+      background:rgba(10,14,28,0.93);
+
+      border:1px solid #1d2338;
+
+      border-radius:30px;
+
+      padding:45px;
+
+      text-align:center;
+
+      backdrop-filter:blur(12px);
+
+      box-shadow:
+      0 0 40px rgba(0,0,0,0.5),
+      0 0 30px rgba(0,255,120,0.07);
+    }
+
+    .logo{
+      font-size:56px;
+      font-weight:900;
+      color:#6dff75;
+      margin-bottom:20px;
+    }
+
+    .searching{
+      font-size:22px;
+      margin-bottom:30px;
+    }
+
+    .loader{
+      width:90px;
+      height:90px;
+
+      border:6px solid #1c2438;
+
+      border-top:6px solid #6dff75;
+
+      border-radius:50%;
+
+      margin:auto;
+
+      animation:spin 1s linear infinite;
+    }
+
+    @keyframes spin{
+      from{
+        transform:rotate(0deg);
+      }
+      to{
+        transform:rotate(360deg);
+      }
+    }
+
+    .dots{
+      margin-top:25px;
+      color:#8f97ab;
+      font-size:18px;
+    }
+
+    .cancel{
+      margin-top:35px;
+
+      width:100%;
+
+      padding:15px;
+
+      border:none;
+
+      border-radius:15px;
+
+      background:#1b2237;
+
+      color:white;
+
+      cursor:pointer;
+
+      font-size:16px;
+
+      transition:0.2s;
+    }
+
+    .cancel:hover{
+      background:#242d47;
+    }
+
+    .cancel-button {
+    /* Робимо посилання блочним елементом, щоб працювали відступи */
+    display: inline-block;
+    
+    /* Кольори (підібрано під темну тему зі скріншота) */
+    background-color: #1e2230; /* Темно-синій фон */
+    color: white;              /* Білий текст */
+    
+    /* Відступи та форма */
+    padding: 12px 24px;        /* Внутрішні відступи (вертикальні та горизонтальні) */
+    text-decoration: none;     /* Прибираємо підкреслення посилання */
+    border-radius: 12px;       /* Закруглені кути */
+    
+    /* Шрифт та вирівнювання */
+    font-family: sans-serif;
+    font-size: 16px;
+    text-align: center;
+    
+    /* Плавний перехід при наведенні */
+    transition: background-color 0.3s ease;
+}
+
+/* Ефект при наведенні курсору */
+.cancel-button:hover {
+    background-color: #2a2f42; /* Трохи світліший колір при наведенні */
+}
+
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="box">
+
+  <div class="logo">
+    strangr
+  </div>
+
+  <div class="searching">
+    Searching for stranger...
+  </div>
+
+  <div class="loader"></div>
+
+  <div class="dots" id="dots">
+    please wait
+  </div>
+  <br>
+ <a href="index.html" class="cancel-button">Cancel</a>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const socket =
+  io();
+
+const username =
+  localStorage.getItem("username");
+
+const dots =
+  document.getElementById("dots");
+
+let dotsCount = 0;
+
+setInterval(()=>{
+
+  dotsCount++;
+
+  dots.innerText =
+    "please wait" +
+    ".".repeat(dotsCount % 4);
+
+},500);
+
+socket.emit("find-stranger",{
+  username
+});
+
+socket.on("matched",(room,initiator)=>{
+
+  localStorage.setItem(
+    "room",
+    room
+  );
+
+  localStorage.setItem(
+    "initiator",
+    initiator
+  );
+
+  window.location.href = "chat.html";
+});
+
+document
+.getElementById("cancelBtn")
+.onclick = ()=>{
+
+  window.location.href = "index.html";
+};
+
+</script>
+
+</body>
+</html>
