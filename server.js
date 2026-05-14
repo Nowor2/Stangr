@@ -4,11 +4,25 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
+
 app.use(cors());
+app.use(express.static('public'));
+
+app.get("/", (req, res) => {
+  res.send("Voice chat server is running");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 const server = http.createServer(app);
+
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 let queue = [];
@@ -24,33 +38,49 @@ function matchUsers() {
   user1.join(room);
   user2.join(room);
 
-  user1.emit("matched", { room, initiator: true });
-  user2.emit("matched", { room, initiator: false });
+  user1.emit("matched", {
+    room,
+    initiator: true
+  });
+
+  user2.emit("matched", {
+    room,
+    initiator: false
+  });
 }
 
 io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
 
   socket.on("find", () => {
-    if (!queue.includes(socket)) queue.push(socket);
+    if (!queue.find((s) => s.id === socket.id)) {
+      queue.push(socket);
+    }
+
     matchUsers();
   });
 
   socket.on("next", () => {
-    queue = queue.filter(s => s.id !== socket.id);
+    queue = queue.filter((s) => s.id !== socket.id);
+
     queue.push(socket);
+
     matchUsers();
   });
 
-  // WebRTC signaling
   socket.on("signal", ({ room, data }) => {
     socket.to(room).emit("signal", data);
   });
 
   socket.on("disconnect", () => {
-    queue = queue.filter(s => s.id !== socket.id);
+    console.log("User disconnected:", socket.id);
+
+    queue = queue.filter((s) => s.id !== socket.id);
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
